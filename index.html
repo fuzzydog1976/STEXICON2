@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEXICON - Special Character Cipher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+        }
+        /* Custom scrollbar for textareas */
+        textarea {
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #9ca3af #e5e7eb; /* thumb track */
+        }
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #9ca3af;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-200 flex flex-col gap-6">
+        <h1 class="text-4xl font-extrabold text-center text-gray-900 mb-2 tracking-tight">
+            STEXICON
+        </h1>
+        <p class="text-center text-gray-600 text-lg mb-4">
+            a special character solution.
+        </p>
+
+        <div id="messageDisplay" class="text-center text-sm font-medium h-4"></div>
+
+        <hr class="border-t-2 border-gray-200 my-4">
+
+        <div class="flex flex-col gap-3">
+            <label for="enterMessageInput" class="block text-lg font-medium text-gray-700">
+                Enter Message:
+            </label>
+            <div class="flex gap-2">
+                <textarea id="enterMessageInput" rows="3"
+                          class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-y"
+                          placeholder="Type your message to encrypt..."></textarea>
+                <button id="pasteEnterMessageBtn"
+                        class="px-5 py-2 bg-yellow-600 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-300 ease-in-out">
+                    Paste
+                </button>
+            </div>
+            <button id="encryptBtn"
+                    class="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out">
+                Encrypt
+            </button>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <label for="encryptedMessageOutput" class="block text-lg font-medium text-gray-700">
+                Encrypted Message:
+            </label>
+            <div class="flex gap-2">
+                <textarea id="encryptedMessageOutput" rows="3" readonly
+                          class="flex-grow px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm focus:outline-none text-base resize-y"
+                          placeholder="Encrypted message will appear here."></textarea>
+                <button id="copyCipherBtn"
+                        class="px-5 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300 ease-in-out">
+                    Copy Cipher
+                </button>
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-gray-200 my-4">
+
+        <div class="flex flex-col gap-3">
+            <label for="pasteEncryptedMessageInput" class="block text-lg font-medium text-gray-700">
+                Place Encrypted Messages Here:
+            </label>
+            <div class="flex gap-2">
+                <textarea id="pasteEncryptedMessageInput" rows="3"
+                          class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-y"
+                          placeholder="Paste an encrypted message here to decrypt."></textarea>
+                <button id="pasteCipherBtn"
+                        class="px-5 py-2 bg-yellow-600 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-300 ease-in-out">
+                    Paste
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <label for="decryptedMessageOutput" class="block text-lg font-medium text-gray-700">
+                Decrypted Message:
+            </label>
+            <textarea id="decryptedMessageOutput" rows="3" readonly
+                      class="block w-full px-4 py-2 border border-gray-300 bg-gray-50 rounded-lg shadow-sm focus:outline-none text-base resize-y"
+                      placeholder="Decrypted message will appear here."></textarea>
+            <button id="decryptBtn"
+                    class="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-300 ease-in-out">
+                Submit (Decrypt)
+            </button>
+        </div>
+
+        <hr class="border-t-2 border-gray-200 my-4">
+
+        <button id="clearAllMessagesBtn"
+                class="w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-300 ease-in-out">
+            Clear All Messages
+        </button>
+    </div>
+
+    <script>
+        // Global variables for cipher mapping
+        let encryptionMap = new Map();
+        let decryptionMap = new Map();
+        const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const CIPHER_CHARS = "₳฿₵ĐɆ₣₲ⱧłJ₭Ⱡ₥₦Ø₱QⱤ₴₮ɄV₩ӾɎⱫ"; // 26 unique special characters
+
+        // Get references to DOM elements
+        const messageDisplay = document.getElementById('messageDisplay');
+        const enterMessageInput = document.getElementById('enterMessageInput');
+        const pasteEnterMessageBtn = document.getElementById('pasteEnterMessageBtn');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const encryptedMessageOutput = document.getElementById('encryptedMessageOutput');
+        const copyCipherBtn = document.getElementById('copyCipherBtn');
+        const pasteEncryptedMessageInput = document.getElementById('pasteEncryptedMessageInput');
+        const pasteCipherBtn = document.getElementById('pasteCipherBtn');
+        const decryptedMessageOutput = document.getElementById('decryptedMessageOutput');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const clearAllMessagesBtn = document.getElementById('clearAllMessagesBtn');
+
+        /**
+         * Displays a temporary message to the user.
+         * @param {string} msg The message to display.
+         * @param {string} [colorClass='text-gray-700'] Tailwind CSS color class for the message.
+         */
+        function displayMessage(msg, colorClass = 'text-gray-700') {
+            messageDisplay.textContent = msg;
+            messageDisplay.className = `mt-2 text-center text-sm font-medium ${colorClass}`;
+            setTimeout(() => {
+                messageDisplay.textContent = '';
+                messageDisplay.className = 'mt-2 text-center text-sm font-medium h-4'; // Reset class and ensure height
+            }, 3000); // Clear message after 3 seconds
+        }
+
+        /**
+         * Encrypts a message using the current cipher key.
+         * Non-alphabetic characters are preserved.
+         * @param {string} message The message to encrypt.
+         * @returns {string} The encrypted message.
+         */
+        function encryptMessage(message) {
+            if (encryptionMap.size === 0) {
+                displayMessage("Encryption is not set up.", 'text-red-600');
+                return "";
+            }
+
+            let encrypted = "";
+            for (let i = 0; i < message.length; i++) {
+                const originalChar = message[i];
+                const upperChar = originalChar.toUpperCase();
+                if (encryptionMap.has(upperChar)) {
+                    // This cipher doesn't support case, so we always use the special character
+                    encrypted += encryptionMap.get(upperChar);
+                } else {
+                    encrypted += originalChar; // Keep non-alphabetic characters as is
+                }
+            }
+            return encrypted;
+        }
+
+        /**
+         * Decrypts a message using the current cipher key.
+         * Non-alphabetic characters are preserved.
+         * @param {string} cipherText The message to decrypt.
+         * @returns {string} The decrypted message.
+         */
+        function decryptMessage(cipherText) {
+            if (decryptionMap.size === 0) {
+                displayMessage("Decryption is not set up.", 'text-red-600');
+                return "";
+            }
+
+            let decrypted = "";
+            for (let i = 0; i < cipherText.length; i++) {
+                const originalChar = cipherText[i];
+                const upperChar = originalChar.toUpperCase();
+                if (decryptionMap.has(upperChar)) {
+                    // Maintain original case if possible
+                    const plainChar = decryptionMap.get(upperChar);
+                    decrypted += originalChar === upperChar ? plainChar : plainChar.toLowerCase();
+                } else if (decryptionMap.has(originalChar)) { // For case-sensitive special characters
+                     decrypted += decryptionMap.get(originalChar);
+                } else {
+                    decrypted += originalChar; // Keep non-mapped characters as is
+                }
+            }
+            return decrypted;
+        }
+
+        // --- Event Listeners ---
+
+        // Encrypt Button
+        encryptBtn.addEventListener('click', () => {
+            const encryptedText = encryptMessage(enterMessageInput.value);
+            encryptedMessageOutput.value = encryptedText;
+            if (encryptedText) {
+                displayMessage("Message encrypted!", 'text-green-600');
+            }
+        });
+
+        // Copy Cipher Button
+        copyCipherBtn.addEventListener('click', () => {
+            if (encryptedMessageOutput.value) {
+                encryptedMessageOutput.select(); // Select the text in the textarea
+                encryptedMessageOutput.setSelectionRange(0, 99999); // For mobile devices
+
+                try {
+                    document.execCommand('copy');
+                    displayMessage("Encrypted message copied to clipboard!", 'text-blue-600');
+                } catch (err) {
+                    console.error('Failed to copy text:', err);
+                    displayMessage("Failed to copy. Please manually select and copy the text.", 'text-red-600');
+                }
+            } else {
+                displayMessage("No encrypted message to copy!", 'text-yellow-600');
+            }
+        });
+
+        // Paste into Enter Message Button
+        pasteEnterMessageBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                enterMessageInput.value = text;
+                displayMessage("Text pasted into message input!", 'text-blue-600');
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                displayMessage("Failed to paste. Clipboard access denied or empty. Please manually paste.", 'text-red-600');
+            }
+        });
+
+        // Paste Cipher Button (for encrypted messages)
+        pasteCipherBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                pasteEncryptedMessageInput.value = text;
+                displayMessage("Encrypted message pasted from clipboard!", 'text-blue-600');
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                displayMessage("Failed to paste. Clipboard access denied or empty. Please manually paste into the box.", 'text-red-600');
+            }
+        });
+
+        // Decrypt Button
+        decryptBtn.addEventListener('click', () => {
+            const decryptedText = decryptMessage(pasteEncryptedMessageInput.value);
+            decryptedMessageOutput.value = decryptedText;
+            if (decryptedText) {
+                displayMessage("Message decrypted!", 'text-green-600');
+            }
+        });
+
+        // Clear All Messages Button
+        clearAllMessagesBtn.addEventListener('click', () => {
+            enterMessageInput.value = '';
+            encryptedMessageOutput.value = '';
+            pasteEncryptedMessageInput.value = '';
+            decryptedMessageOutput.value = '';
+            displayMessage("All message boxes cleared!", 'text-gray-600');
+        });
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Build the encryption and decryption maps on page load
+            if (ALPHABET.length === CIPHER_CHARS.length) {
+                 for (let i = 0; i < ALPHABET.length; i++) {
+                     const plainChar = ALPHABET[i];
+                     const cipherChar = CIPHER_CHARS[i];
+                     encryptionMap.set(plainChar, cipherChar);
+                     decryptionMap.set(cipherChar, plainChar);
+                 }
+                displayMessage("Special character cipher is ready.", 'text-gray-700');
+            } else {
+                displayMessage("Error: Alphabet and special character lists are not the same length.", 'text-red-600');
+            }
+        });
+    </script>
+</body>
+</html>

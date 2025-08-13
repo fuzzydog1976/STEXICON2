@@ -36,7 +36,7 @@
             STEXICON
         </h1>
         <p class="text-center text-gray-600 text-lg mb-4">
-            a special character solution.
+            a randomized special character solution.
         </p>
 
         <div id="messageDisplay" class="text-center text-sm font-medium h-4"></div>
@@ -120,7 +120,8 @@
         let encryptionMap = new Map();
         let decryptionMap = new Map();
         const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const CIPHER_CHARS = "₳฿₵ĐɆ₣₲ⱧłJ₭Ⱡ₥₦Ø₱QⱤ₴₮ɄV₩ӾɎⱫ"; // 26 unique special characters
+        // A much more unique and diverse set of special characters
+        const CIPHER_CHARS = "⌘☢❖♨⚖⚡✇⟠⚝☔⍟⌖⚙⚓⚛⌛✨✣☪✡⚜⚔♜♛♚⚀";
 
         // Get references to DOM elements
         const messageDisplay = document.getElementById('messageDisplay');
@@ -190,12 +191,7 @@
             let decrypted = "";
             for (let i = 0; i < cipherText.length; i++) {
                 const originalChar = cipherText[i];
-                const upperChar = originalChar.toUpperCase();
-                if (decryptionMap.has(upperChar)) {
-                    // Maintain original case if possible
-                    const plainChar = decryptionMap.get(upperChar);
-                    decrypted += originalChar === upperChar ? plainChar : plainChar.toLowerCase();
-                } else if (decryptionMap.has(originalChar)) { // For case-sensitive special characters
+                if (decryptionMap.has(originalChar)) {
                      decrypted += decryptionMap.get(originalChar);
                 } else {
                     decrypted += originalChar; // Keep non-mapped characters as is
